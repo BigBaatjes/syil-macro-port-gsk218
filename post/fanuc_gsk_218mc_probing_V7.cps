@@ -7,7 +7,7 @@
   MODIFIED FOR GSK 218MC COMPATIBILITY:
   - V6: O9100-series custom probe library replaces broken GSK P83xxx macros
   - WCS selection from Fusion Setup (not hardcoded to G54)
-  - Forced metric output (G21) - GSK requires metric
+  - Forced metric output (G21) - inch documents auto-scaled to mm via format scale
   - Semicolon after O program number (GSK requirement)
   - WCS mapping: Fusion offset 1=G54(S54), 2=G55(S55), etc.
   - All probe cycles use two-pass architecture (fast+slow) via O9100-series
@@ -42,7 +42,7 @@ minimumCircularSweep = toRad(0.01);
 maximumCircularSweep = toRad(180);
 allowHelicalMoves = true;
 allowedCircularPlanes = undefined; // allow any circular motion
-highFeedrate = (unit == MM) ? 5000 : 200;
+highFeedrate = 5000; // Always mm/min since output is forced G21
 probeMultipleFeatures = true;
 
 // user-defined properties
@@ -256,21 +256,23 @@ var diameterOffsetFormat = createFormat({prefix:"D", minDigitsLeft:2, decimals:1
 var probeWCSFormat = createFormat({prefix:"S", decimals:0, type:FORMAT_REAL});
 var probeExtWCSFormat = createFormat({prefix:"S", decimals:0, type:FORMAT_REAL, offset:100});
 
-var xyzFormat = createFormat({decimals:(unit == MM ? 3 : 4), type:FORMAT_REAL});
-var xyzMetricFormat = createFormat({decimals:3, type:FORMAT_REAL}); // Always metric for GSK probe values
-var ijkFormat = createFormat({decimals:6, type:FORMAT_REAL}); // unitless
+// When document is inches, scale all linear values by 25.4 so G-code is always metric (G21)
+var _mmScale = (unit == IN) ? 25.4 : 1;
+var xyzFormat = createFormat({decimals:3, type:FORMAT_REAL, scale:_mmScale});
+var xyzMetricFormat = createFormat({decimals:3, type:FORMAT_REAL}); // Always metric for GSK probe values (pre-converted)
+var ijkFormat = createFormat({decimals:6, type:FORMAT_REAL, scale:_mmScale});
 var rFormat = xyzFormat; // radius
 var abcFormat = createFormat({decimals:3, type:FORMAT_REAL, scale:DEG});
-var feedFormat = createFormat({decimals:(unit == MM ? 0 : 1), type:FORMAT_REAL});
+var feedFormat = createFormat({decimals:1, type:FORMAT_REAL, scale:_mmScale});
 var inverseTimeFormat = createFormat({decimals:3, type:FORMAT_REAL});
-var pitchFormat = createFormat({decimals:(unit == MM ? 3 : 4), type:FORMAT_REAL});
+var pitchFormat = createFormat({decimals:3, type:FORMAT_REAL, scale:_mmScale});
 var toolFormat = createFormat({decimals:0});
 var rpmFormat = createFormat({decimals:0});
 var secFormat = createFormat({decimals:3, type:FORMAT_REAL}); // seconds - range 0.001-99999.999
 var milliFormat = createFormat({decimals:0}); // milliseconds // range 1-9999
 var taperFormat = createFormat({decimals:1, scale:DEG});
 var oFormat = createFormat({minDigitsLeft:4, decimals:0});
-var peckFormat = createFormat({decimals:(unit == MM ? 3 : 4), type:FORMAT_REAL});
+var peckFormat = createFormat({decimals:3, type:FORMAT_REAL, scale:_mmScale});
 // var peckFormat = createFormat({decimals:0, type:FORMAT_LZS, minDigitsLeft:4, scale:(unit == MM ? 1000 : 10000)});
 
 var xOutput = createOutputVariable({onchange:function() {state.retractedX = false;}, prefix:"X"}, xyzFormat);
@@ -422,7 +424,7 @@ function onOpen() {
       error(localize("Parametric feed is not supported when using G95."));
       return;
     }
-    feedFormat.setNumberOfDecimals(unit == MM ? 4 : 5);
+    feedFormat.setNumberOfDecimals(4); // mm/rev always needs 4 decimals
     feedOutput.setFormat(feedFormat);
   }
 
@@ -436,7 +438,7 @@ function onOpen() {
 
   // absolute coordinates and feed per min
   writeBlock(gAbsIncModal.format(90), gFeedModeModal.format(getProperty("useG95") ? 95 : 94), gPlaneModal.format(17), toolLengthCompOutput.format(49), gFormat.format(40), gFormat.format(80));
-  writeBlock(gUnitModal.format(21)); // Force G21 (metric) - GSK controller requires metric
+  writeBlock(gUnitModal.format(21)); // Always G21 (metric) - coordinates are scaled to mm if document is inches
   validateCommonParameters();
 }
 
@@ -3471,7 +3473,7 @@ function getCommonCycle(x, y, z, r, c) {
 // <<<<< INCLUDED FROM include_files/drillCycles_fanuc.cpi
 // >>>>> INCLUDED FROM include_files/commonInspectionFunctions_fanuc.cpi
 var macroFormat = createFormat({prefix:(typeof inspectionVariables == "undefined" ? "#" : inspectionVariables.localVariablePrefix), decimals:0});
-var macroRoundingFormat =  (unit == MM) ? "[53]" : "[44]";
+var macroRoundingFormat = "[53]"; // Always mm precision since output is forced G21
 var isDPRNTopen = false;
 
 var WARNING_OUTDATED = 0;
@@ -3719,7 +3721,7 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
     var dirI = cycle.approach1 === "positive" ? -1.0 : 1.0;
     writeBlock(gFormat.format(65), "P9100",
       "S" + workOffset,
-      "I" + xyzFormat.format(dirI),
+      "I" + xyzMetricFormat.format(dirI),
       "R" + xyzMetricFormat.format(probeRadiusMm));
     break;
 
@@ -3731,7 +3733,7 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
     var dirI = cycle.approach1 === "positive" ? -1.0 : 1.0;
     writeBlock(gFormat.format(65), "P9101",
       "S" + workOffset,
-      "I" + xyzFormat.format(dirI),
+      "I" + xyzMetricFormat.format(dirI),
       "R" + xyzMetricFormat.format(probeRadiusMm));
     break;
 
@@ -3755,8 +3757,8 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
     var dirJ = cycle.approach2 === "positive" ? 1.0 : -1.0;
     writeBlock(gFormat.format(65), "P9110",
       "S" + workOffset,
-      "I" + xyzFormat.format(dirI),
-      "J" + xyzFormat.format(dirJ),
+      "I" + xyzMetricFormat.format(dirI),
+      "J" + xyzMetricFormat.format(dirJ),
       "R" + xyzMetricFormat.format(probeRadiusMm));
     if (getProperty("EnableZeroPointCompensation")) {
       var overrideWCS = (currentSection.workOffset > 0 ? currentSection.workOffset : 1) + 53;
@@ -3775,8 +3777,8 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
     var dirJ = cycle.approach2 === "positive" ? 1.0 : -1.0;
     writeBlock(gFormat.format(65), "P9111",
       "S" + workOffset,
-      "I" + xyzFormat.format(dirI),
-      "J" + xyzFormat.format(dirJ),
+      "I" + xyzMetricFormat.format(dirI),
+      "J" + xyzMetricFormat.format(dirJ),
       "R" + xyzMetricFormat.format(probeRadiusMm));
     if (getProperty("EnableZeroPointCompensation")) {
       var overrideWCS = (currentSection.workOffset > 0 ? currentSection.workOffset : 1) + 53;
