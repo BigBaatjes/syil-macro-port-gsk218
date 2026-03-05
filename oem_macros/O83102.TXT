@@ -1,0 +1,41 @@
+O83102;
+(Probe eccentricity calibration program)
+M48;(Enable measurement mode)
+IF[#1001EQ1]THEN#3000=91(When measuring, please close the auxiliary lock);
+M46;(Open probe)
+G04X1;
+G65P83024;
+IF[#7NE#0]GOTO1;
+#3000=91(The D value is not entered);
+N1;
+IF[#7LE0]THEN#3000=91(The D value is incorrectly entered);
+#1=135;
+WHILE[#1LE149]DO1;
+#[#1]=#0;
+#1=#1+1;
+END1;
+#10=#5011;
+#12=#5012;
+IF[#26EQ#0]GOTO2;
+IF[#18NE#0]GOTO2;
+#18=5*#129;
+N2;
+G65P83021D#7Q#17R#18Z#26S#500;
+IF[#149NE0]GOTO3;
+G00X#127;
+#502=#10-#127;
+G65P83022D#7Q#17R#18Z#26S#501;
+IF[#149NE0]GOTO3;
+#503=#12-#128;
+GOTO5;
+N3;
+G00X#10Y#12;
+IF[#149EQ2]GOTO4;
+#3000=92(The measurement signal is triggered abnormally);
+N4;
+#3000=93(Measurement failure);
+N5;
+G00X#10Y#12;
+M49;(Off measurement mode)
+M99;
+%

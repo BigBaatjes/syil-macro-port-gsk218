@@ -1,0 +1,13 @@
+O81031;
+(Tool diameter measurement calibration program)
+#19=#40;(#19 The exact tool diameter value of a standard tool)
+#6=#46;(#6 The diameter and size of the tool measuring head)
+#26=#42;(#26 The incremental distance from the current point to the measured depth of the Z-axis)
+(The following content cannot be modified)
+#960=1;
+G65 P81022 K[#6] S[#19 ] Z[#26] W[#960];
+#960=2;
+G65 P81022 K[#6] S[#19 ] Z[#26] W[#960];
+G65 P81022 K[#6] S[#19 ] Z[#26];
+M30;
+%

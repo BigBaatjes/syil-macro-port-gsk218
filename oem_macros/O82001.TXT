@@ -1,0 +1,100 @@
+O82001;(Split function main macro program)
+M48;(Enable measurement mode)
+#30=50;(Safe altitude mm)
+IF[#4006EQ21]GOTO2;
+#30=2.0;(Safe altitude inch)
+N2;
+M46;(Open probe)
+G04X1;
+#1=#48;(Starting Angle A)
+#2=#49;(Second point Angle B)
+#3=#50;(Third point Angle C)
+#7=#47;(Target sizeD)
+#8=#40;(Experience value offset signE)
+#17=#46;(Probe overshoot distance Q)
+#18=#45;(Radial clearance R)
+#19=#38;(Coordinate system selectionS)
+#20=#39;(Offset sign T)
+#23=#44;(Profile size tolerance W)
+#24=#47;(Target size Lx)
+#25=#48;(Target size Ly)
+#26=#43;(Measuring point Z coordinates)
+#11=#41;(Target size Lx)
+#12=#42;(Target size Ly)
+N5;
+IF[#19EQ#0]GOTO14;
+IF[[#19-FIX[#19]]NE0]GOTO12;
+#19=#38;
+GOTO14;
+N12 #19=ROUND[[#19-FIX[#19]]*100];
+N14;
+IF[#20EQ#0]GOTO20;
+IF[#8EQ#0]GOTO20;
+IF[#8NE#20]GOTO20;
+#3000=102(The blade deviation t cannot be the same as the experience knife);
+N20;
+IF[#37EQ1]GOTO100;
+IF[#37EQ2]GOTO200;
+IF[#37EQ3]GOTO300;
+IF[#37EQ4]GOTO400;
+IF[#37EQ5]GOTO500;
+#3000=102(The value of the artifact type is incorrect);
+(***********)
+N100;(Inner hole and outer circle measurement)
+IF[#7EQ#0]THEN#3000=102(Target size D is not entered);
+IF[#7LE0]THEN#3000=102(The target size D was incorrectly entered);
+G65 P83051 X[#11] Y[#12] R[#30];
+G65 P83214 D[#7] Z[#26] R[#18] Q[#17] S[#19] T[#20] W[#23] E[#8];
+GOTO999;
+(************)
+N200;(Groove and boss measurement)
+IF[#24NE#0]GOTO202;
+IF[#25NE#0]GOTO204;
+#3000=102(The target dimensions Lx and Ly are not entered);
+N202;
+IF[#24LE0]THEN#3000=102(The target size Lx is incorrectly entered);
+IF[#25EQ#0]GOTO206;
+N204;
+IF[#25LE0]THEN#3000=102(The target size Ly is incorrectly entered);
+N206;
+G65 P83051 X[#11] Y[#12] R[#30];
+G65 P83213 X[#24] Y[#25] Z[#26] R[#18] Q[#17] S[#19] T[#20] W[#23] E[#8];
+GOTO999;
+(************)
+N300;(Three point inner hole and outer circle measurement)
+IF[#7EQ#0]THEN#3000=102(Target size D is not entered);
+IF[#7LE0]THEN#3000=102(The target size D was incorrectly entered);
+IF[#1EQ#0]THEN#3000=102(Starting Angle A is not entered);
+IF[#1LT-180]THEN#3000=102(The starting Angle A cannot be less than -180бу);
+IF[#1GT180]THEN#3000=102(The starting Angle A cannot be greater than 180бу);
+IF[#2EQ#0]THEN#3000=102(The second point Angle B is not entered);
+IF[#2LT-180]THEN#3000=102(The second point B can't be less than -180 degrees);
+IF[#2GT180]THEN#3000=102(The second point B cannot be greater than 180 degrees);
+IF[#3EQ#0]THEN#3000=102(The third point Angle c doesn't enter);
+IF[#3LT-180]THEN#3000=102(The third point Angle C cannot be less than -180бу);
+IF[#3GT180]THEN#3000=102(The third point Angle C cannot be greater than 180бу);
+G65 P83051 X[#11] Y[#12] R[#30];
+G65 P83230 D[#7] A[#1] B[#2] C[#3] Z[#26] R[#18] Q[#17] S[#19] T[#20] W[#23] E[#8];
+GOTO999;
+(************)
+N400;(Groove and boss measurements with angles)
+IF[#7EQ#0]THEN#3000=102(The target size D is not entered);
+IF[#7LE0]THEN#3000=102(Target size D is inputted incorrectly);
+IF[#1EQ#0]THEN#3000=102(Target size D is inputted incorrectly);
+IF[#1LT-180]THEN#3000=102(The starting Angle A cannot be less than -180бу);
+IF[#1GT180]THEN#3000=102(The starting Angle A cannot be greater than 180бу);
+G65 P83051 X[#11] Y[#12] R[#30];
+G65 P83231 D[#7] A[#1] Z[#26] R[#18] Q[#17] S[#19] T[#20] W[#23] E[#8];
+GOTO999;
+(************)
+N500;(Z-axis workpiece coordinates zero measurement program)
+IF[#19EQ#0]THEN#3000=102(Specify the workpiece coordinate system S);
+IF[#20EQ#0]THEN#3000=103(Please specify probe tool offset number T);
+IF[#26EQ#0]THEN#3000=104(Please specify the measurement depth Z);
+G65 P83240 X[#11] Y[#12] Z[#26] Q[#17] S[#19] T[#20]
+GOTO999;
+(************)
+N999;
+M49;(Turn off measurement mode)
+M30;
+%

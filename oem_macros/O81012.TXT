@@ -1,0 +1,31 @@
+O81012;
+(Tool measuring function variable setting program)
+(!:Please check the reading instruction, according to the actual Settings!)
+IF[#4006EQ20]GOTO20;
+N10;(G21)
+(MM)
+#100=1;(Tool radius compensation 2=R 1=D)
+#101=1;(THE TOOL DIAMETER MEASUREMENT FUNCTION IS OPEN. 0-NO 1-YES)
+#102=1;(DO YOU USE AN AUTOMATIC KNIFE 0-UNUSE 1-USE)
+#961=0;(Data system 0-INCH 1-MM)
+#955=100;(Z shaft safety height. + value MM)
+#956=10;(The z axis is close to the height + value MM)
+#957=20;(The height of the cutting tool + value MM)
+#958=40;(Maximum diameter of tool MM)
+#960=-1;(The direction of the tool is offset when the rotation is measured)
+GOTO30;
+;
+N20;(G20)
+(INCH)
+#100=1;(Tool radius compensation 2=R 1=D)
+#101=1;(THE TOOL DIAMETER MEASUREMENT FUNCTION IS OPEN. 0-NO 1-YES)
+#102=1;(DO YOU USE AN AUTOMATIC KNIFE 0-UNUSE 1-USE)
+#961=1;(Data system 0-INCH 1-MM)
+#955=4.0;(Z shaft safety height. + value INCH)
+#956=0.4;(The z axis is close to the height + value INCH)
+#957=0.8;(The height of the cutting tool + value INCH)
+#958=1.6;(Maximum diameter of tool INCH)
+#960=-1;(The direction of the tool is offset when the rotation is measured)
+N30;
+M99;
+%

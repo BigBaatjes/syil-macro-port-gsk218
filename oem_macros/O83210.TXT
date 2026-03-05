@@ -1,0 +1,32 @@
+O83210;
+(Protection locator)
+M46;(Open probe)
+G04X1;
+G65P83024;
+IF[#9NE#0]GOTO3;
+IF[#117NE#0]GOTO2;
+#3000=88(No input for F-value);
+N2;
+#9=#117;
+N3;
+#117=#9;
+#148=0;
+N4;
+G31X#24Y#25Z#26F#9;
+IF[#24EQ#0]GOTO5;
+IF[ABS[#5011-[#24]]GT#123]GOTO8;
+N5;
+IF[#25EQ#0]GOTO6;
+IF[ABS[#5012-[#25]]GT#123]GOTO8;
+N6;
+IF[#26EQ#0]GOTO7;
+IF[ABS[[#5013-#116]-[#26]]GT#123]GOTO8;
+N7;
+GOTO9;
+N8;
+#148=7.;
+IF[#13EQ1.]GOTO9;
+#3000=86(Protection location blocked);
+N9;
+M99;
+%

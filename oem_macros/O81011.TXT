@@ -1,0 +1,28 @@
+O81011;
+IF[#6EQ#0]GOTO6;
+IF[#20NE#0]GOTO4;
+#3000=11(No instruction knife offset NO.T);
+N4;
+IF[#20LE0]THEN#3000=11(Offset NO.T input error);
+IF[[#20-FIX[#20]]GT0.000001]THEN#3000=11(Offset NO.T input error);
+IF[#20GT255]THEN#3000=11(Tool NO.T input error);
+IF[#6LT0]THEN#3000=11(K must be greater than or equal to 0);
+#[1500+#20]=#6;
+#[1800+#20]=0;
+N6;
+IF[#19EQ#0]GOTO10;
+IF[#7NE#0]GOTO8;
+#3000=11(No instruction knife offset NO.D);
+N8;
+IF[#7LE0]THEN#3000=11(OFFSET NO.D input error);
+IF[[#7-FIX[#7]]GT0.00001]THEN#3000=11(OFFSET NO.T input error);
+IF[#7GT255]THEN#3000=11(OFFSET NO.D input error);
+#[2100+#7]=#19;
+#[2400+#7]=0;
+N10;
+IF[#6NE#0]GOTO99;
+IF[#19NE#0]GOTO99;
+#3000=11(Neither k nor s input);
+N99;
+M99;
+%

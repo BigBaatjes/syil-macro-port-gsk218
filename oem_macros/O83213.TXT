@@ -1,0 +1,31 @@
+O83213;
+(Groove and boss measurement)
+M48;(Enable measurement mode)
+IF[#1001EQ1]THEN#3000=91(When measuring, please close the auxiliary lock);
+M46;(Open probe)
+G04X1;
+G65 P83050 S#19 T#20 E#8;
+#1=150;
+WHILE[#1LE175]DO1;
+#[#1]=#0;
+#1=#1+1;
+END1;
+#9=#0;(F)
+#13=#0;(M)
+#21=#0;(U)
+IF[#24NE#0]GOTO10;
+IF[#25NE#0]GOTO20;
+#3000=1(Neither X nor Y has an input value);
+N10;
+IF[#24LE0]THEN#3000=1(X value entered incorrectly);
+G65 P83025 X#24 Z#26 R#18 Q#17 S#19 T#20 W#23 E#8;
+IF[#25EQ#0]GOTO99;
+N20;
+IF[#25LE0]THEN#3000=1(X value entered incorrectly);
+G65 P83025 Y#25 Z#26 R#18 Q#17 S#19 T#20 W#23 E#8;
+N99;
+M49;(Off measurement mode)
+M30;
+%
+
+

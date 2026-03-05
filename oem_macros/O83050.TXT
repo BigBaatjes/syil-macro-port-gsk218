@@ -1,0 +1,30 @@
+O83050;
+(Determine whether the s/t and e input is correct)
+N10;(Determine if s input is correct)
+IF[#19EQ#0]GOTO20;
+IF[#19LT0]GOTO15;
+#1=#19-FIX[#19];
+IF[#1GT0.0001]GOTO15;
+IF[#19LE50]GOTO20;
+IF[#19LT54]GOTO15;
+IF[#19LE59]GOTO20;
+N15 #3000=91(S input error);
+N20;(Determine whether the t input is correct)
+IF[#20EQ#0]GOTO30;
+IF[#20LE0]GOTO25;
+#1=#20-FIX[#20];
+IF[#1GT0.0001]GOTO25;
+IF[#20LE255]GOTO30;
+N25 #3000=91(T input error);
+N30;(Determine if the e input is correct)
+IF[#8EQ#0]GOTO50;
+IF[#8LE0]GOTO35;
+#1=#8-FIX[#8];
+IF[#1GT0.0001]GOTO35;
+IF[#8LE255]GOTO40;
+N35 #3000=91(E input error);
+N40;
+IF[#20NE#8]GOTO50;
+#3000=91(E is not equal to t);
+N50 M99;
+%

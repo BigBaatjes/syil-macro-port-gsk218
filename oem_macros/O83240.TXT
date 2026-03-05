@@ -1,0 +1,59 @@
+O83240;
+(Z axis workpiece coordinates zero measurement program)
+M48;(Enable measurement mode)
+IF[#1001EQ1]THEN#3000=91(When measuring, please close the auxiliary lock);
+M46;(Open probe)
+G04X1;
+G49;
+G43H0;
+G65P83024;
+#1=#5011;
+#2=#5012;
+#3=#5013;
+#8=3000*#129;
+#9=200*#129;
+IF[#24NE#0]GOTO1;
+IF[#25NE#0]GOTO1;
+GOTO5;
+N1;
+IF[#24EQ#0]THEN#24=#1;
+IF[#25EQ#0]THEN#25=#2;
+#10=SQRT[#24*#24+#25*#25];
+G90G31X#24Y#25F#8;
+#11=SQRT[#5016*#5016+#5017*#5017];
+IF[ABS[#10-#11]LT#123]GOTO5;
+#3000=102(The XY axis is blocked when positioning);
+N5;
+(**********)
+#130=#3;
+#131=ABS[#26];
+#132=#130-#131-ABS[#17];
+G90 G31 Z#132 F[#9];
+IF[ABS[#132-#5018]NE0]GOTO20;
+G91 G28 Z0;
+#3000=103(Measurement failure);
+N20;
+(**********)
+G04P50;
+#100=#19;
+#101=#20;
+#102=#100-54;
+IF[#102GE0]GOTO80;
+#105=FUP[#100];
+#106=7003+[#105-1]*5;
+GOTO81;
+N80;
+#105=FUP[#100];
+#106=5208+[#105-54]*5;
+N81;
+#110=1500+FUP[#101];
+#111=#106;
+#120=#[#110];
+#121=#5008;
+#[#111]=#121-#120;
+(**********)
+G91G28Z0;
+G90;
+M49;(Off measurement mode)
+M99;
+%

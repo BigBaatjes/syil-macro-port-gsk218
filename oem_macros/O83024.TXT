@@ -1,0 +1,26 @@
+O83024;
+M19;
+#120=3(SELECTOPTIONS);
+M98P83023;
+G90G80G40;
+IF[#4008EQ43]GOTO1;
+#3000=89(Positive tool length compensation is not activated);
+N1;
+IF[#4006EQ20]GOTO4;
+#123=0.05(Place interval value MM);
+#129=1;
+#119=3000.(Fast moving speed MM);
+GOTO5;
+N4;
+#123=0.002(Place interval value INCH);
+#129=0.04;
+#119=200(Fast moving speed INCH);
+N5;
+IF[#506LE0]GOTO6;
+IF[#506GT1]GOTO6;
+GOTO7;
+N6;
+#506=0.2;
+N7;
+M99;
+%

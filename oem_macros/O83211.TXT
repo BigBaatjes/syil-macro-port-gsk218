@@ -1,0 +1,174 @@
+O83211;
+(X/Y/Z Plane-measuring program)
+M48;(Enable measurement mode)
+IF[#1001EQ1]THEN#3000=91(When measuring, please close the auxiliary lock);
+M46;(Open probe)
+G04X1;
+G65 P83050 S#19 T#20 E#8;
+#9=#0;(F)
+#13=#0;(M)
+#21=#0;(U)
+#22=#0;(V)
+G65P83024;
+IF[#19EQ#0]GOTO1;
+IF[#20EQ#0]GOTO1;
+#3000=91(The S value and T value cannot be entered at the same time);
+N1;
+IF[#19EQ#0]GOTO2;
+IF[#8EQ#0]GOTO2;
+#3000=91(The S value and E value cannot be entered at the same time);
+N2;
+IF[#20EQ#0]GOTO3;
+IF[#13EQ#0]GOTO3;
+#3000=91(The T value and M value cannot be entered at the same time);
+N3;
+#1=135;
+WHILE[#1LE175]DO1;
+#[#1]=#0;
+#1=#1+1;
+END1;
+#36=#5006;
+#37=#5007;
+#38=#5008;
+#10=#5011;
+#12=#5012;
+G31X[#10-#502]Y[#12-#503]F#119;
+IF[ABS[#5011-[#10-#502]]GE#123]GOTO22;
+IF[ABS[#5012-[#12-#503]]GE#123]GOTO22;
+#30=-1(DIRFLAG);
+IF[#24NE#0]GOTO5;
+IF[#25NE#0]GOTO7;
+(ZMOVE);
+IF[#26EQ#0]GOTO225;
+#7=5203;
+IF[[#5013-#116]LT#26]GOTO4;
+#30=1;
+N4;
+G65P83026Z#26Q#17;
+IF[#149NE0]GOTO21;
+#135=#10;
+#136=#12;
+#137=#126-#116(ZPOS);
+#138=#137;
+IF[#8EQ#0]GOTO45;
+#138=#138+#[1500+#8];
+N45;
+#142=#137-#26;
+#143=#138-#26;
+#145=ABS[#142];
+#146=#143*#30;
+#153=#137;(Z-axis plane absolute position)
+#158=#142;(Z-axis plane position and input position difference)
+#163=#5008-#5013-#5203+#137;(Machine coordinates for the Z-axis plane position)
+#169=#138;(The Z-axis is the actual measured size)
+#170=#138-#26;(Z-axis The difference between the actual measurement and the given dimension)
+#173=#5008-#5013-#5203+#142;
+GOTO9;
+N5;
+IF[#25NE#0]GOTO225;
+IF[#26NE#0]GOTO225;
+#6=#500;
+#7=5201;
+IF[#5011LT#24]GOTO6;
+#6=-#500;
+#30=1;
+N6;
+G65P83026X#24Q#17S#500;
+IF[#149NE0]GOTO21;
+#135=#124+#6+#502;
+#136=#12;
+#138=#135;
+IF[#8EQ#0]GOTO65;
+#138=#138+#[1500+#8];
+N65;
+#140=#135-#24;
+#143=#138-#24;
+#145=ABS[#140];
+#146=#143*#30;
+#151=#135;(X-axis plane absolute position)
+#156=#140;(X-axis plane position and input position difference)
+#161=#5006-#5011-#5201+#135;(Machine coordinates for the X-axis plane position)
+#165=#138;(The X-axis is the actual measured size)
+#166=#138-#24;(The X-axis is the difference between the actual measurement and the given size)
+#171=#5006-#5011-#5201+#140;
+GOTO9;
+N7;
+IF[#26NE#0]GOTO225;
+#6=#501;
+#7=5202;
+IF[#5012LT#25]GOTO8;
+#6=-#501;
+#30=1;
+N8;
+G65P83026Y#25Q#17S#501;
+IF[#149NE0]GOTO21;
+#135=#10;
+#136=#125+#6+#503;
+#138=#136;
+IF[#8EQ#0]GOTO85;
+#138=#138+#[1500+#8];
+N85;
+#141=#136-#25;
+#143=#138-#25;
+#145=ABS[#141];
+#146=#143*#30;
+#152=#136;(Y-axis plane absolute position)
+#157=#141;(Difference between the Y-axis plane position and the input position)
+#162=#5007-#5012-#5202+#136;(The machine coordinates of the Y-axis plane position)
+#167=#138;(Y-axis The actual measured dimensions)
+#168=#138-#25;(Y-axis The difference between the actual measured dimensions and the given dimensions)
+#172=#5007-#5012-#5202+#141;
+N9;
+#147=#30;
+IF[#21EQ#0]GOTO11;
+IF[ABS[#143]GE#21]GOTO23;
+IF[#145GE#21]GOTO23;
+N11;
+IF[#23EQ#0]GOTO13;
+IF[ABS[#143]LT#23]GOTO12;
+#148=1;
+N12;
+IF[#120AND4EQ4]GOTO13;
+IF[ABS[#143]LT#23]GOTO13;
+G00X#10Y#12;
+#3000=123(Exceeded face tolerance);
+N13;
+IF[#13EQ#0]GOTO15;
+IF[ABS[#145]LT#13/2]GOTO14;
+#148=2;
+N14;
+IF[#120AND4EQ4]GOTO15;
+IF[ABS[#145]LT#13/2]GOTO15;
+G00X#10Y#12;
+#3000=124(Beyond reservation);
+N15;
+IF[#20EQ#0]GOTO19;
+IF[ABS[#146]LT#22]GOTO19;
+IF[#9NE#0]GOTO16;
+#9=1;
+N16;
+G65P83032T#20C[#146*#9]Z#26;
+N19;
+IF[#19EQ#0]GOTO24;
+G65P83032S#19Z#26W1.;
+GOTO24;
+N21;
+IF[#149NE2]GOTO22;
+G00X#10Y#12;
+#3000=93(Measurement failure);
+N22;
+G00X#10Y#12;
+#3000=92(The measurement signal is triggered by abnormal);
+N225;
+G00X#10Y#12;
+#3000=91(XYZ Unable to enter at the same time);
+N23;
+#148=3;
+IF[#120AND4EQ4]GOTO24;
+G00X#10Y#12;
+#3000=125(Exceeded tolerance limit);
+N24;
+G00X[#36-#5006+#5011+#5201]Y[#37-#5007+#5012+#5202];
+M49;(Close measurement mode)
+M30;
+%

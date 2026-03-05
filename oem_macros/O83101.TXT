@@ -1,0 +1,35 @@
+O83101;
+(Probe length calibration procedure)
+M48;(Enable measurement mode)
+IF[#1001EQ1]THEN#3000=91(Please turn off the auxiliary lock function when measuring);
+M46;(Open probe)
+G04X1;
+G65 P83050 T#20;
+G65P83024;
+IF[#20NE#0]GOTO1;
+#3000=91(T no input);
+N1;
+IF[#26NE#0]GOTO2;
+#3000=91(Z No input);
+N2;
+#1=135;
+WHILE[#1LE149]DO1;
+#[#1]=#0;
+#1=#1+1;
+END1;
+#10=#5013-#116;
+G65P83026Z#26Q#17;
+IF[#149NE0]GOTO3;
+#3=#126-#116-#26;
+#[1500+#20]=#[1500+#20]+#3;
+GOTO5;
+N3;
+G00Z#10;
+IF[#149EQ2]GOTO4;
+#3000=92(The measurement signal is triggered abnormally);
+N4;
+#3000=93(Measurement failure);
+N5;
+M49;(Off measurement mode)
+M99;
+%

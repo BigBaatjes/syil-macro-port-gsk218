@@ -1,0 +1,51 @@
+O81019;
+(Variable setting)
+#30=950;
+G90G80G40G00;
+(MM)
+#29=1;
+#31=1;(Metric storage)
+IF[#[#30+11]NE1]GOTO100;
+#31=1/25.4;(English storage)
+N100;
+IF[#4006EQ21]GOTO101;
+(Inch)
+#29=0.04;
+#31=25.4;(Metric storage)
+IF[#[#30+11]NE1]GOTO101;
+#31=1;(English storage)
+N101;
+IF[#506LE0]GOTO102;
+IF[#506GT1]GOTO102;
+GOTO103;
+N102;
+#506=0.3;
+N103;
+IF[#118NE1]GOTO104;
+#[#30+0]=#107*#31;
+#[#30+1]=#113*#31;
+#[#30+3]=#5006*#31;
+#[#30+4]=#5007*#31;
+GOTO106;
+N104;
+IF[#118NE2]GOTO105;
+#[#30+2]=#110*#31;
+#[#30+3]=#111*#31;
+#[#30+4]=#112*#31;
+GOTO106;
+N105;
+#107=#[#30+0]/#31;(Z-calibration value)
+#113=#[#30+1]/#31;(The z-axis calibration value, the rotation measurement is used)
+#110=#[#30+2]/#31;(Radial dimension of the tool)
+#111=#[#30+3]/#31;(The X-axis machine position of the knife instrument)
+#112=#[#30+4]/#31;(The Y-axis machine position of the knife instrument)
+#115=#[#30+5]/#31;(Z axis safety height position)
+#116=#[#30+6]/#31;(The z axis is near the height)
+#117=#[#30+7]/#31;(Start the tool rotation position)
+#121=#[#30+8]/#31;(Maximum tool diameter)
+#108=#[#30+9];(Tool bias type)
+#120=#[#30+10];(Measuring direction)
+N106;
+#149=0;
+M99;
+%

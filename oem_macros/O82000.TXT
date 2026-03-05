@@ -1,0 +1,101 @@
+O82000;
+(Main macro program for knife function)
+M48;
+IF[#1001EQ1]THEN#3000=91(Please close the auxiliary lock when measuring);
+M47;(Valid for cutter jump signal input)
+N1;
+IF[#36EQ4]GOTO400;
+IF[#36EQ5]GOTO500;
+N3;
+#20=#37+#38/1000;
+IF[#44NE#0]GOTO100;
+IF[#45NE#0]GOTO100;
+(**********)
+(Measure and store tool length and diameter values)
+IF[#36EQ1]GOTO10;
+IF[#36EQ2]GOTO20;
+IF[#36EQ3]GOTO30;
+N10;(Tool length measurement)
+IF[#41NE#0]GOTO12;
+IF[#[1500+#38]GT0]GOTO14;
+#3000=103(There is no input or error in the length of the tool);
+N12;
+#[1500+#38]=#41;
+#[1800+#38]=0;
+N14;
+G65 P81023 B1 T[#20] S[#40] Z[#42] Q#[43];
+GOTO999;
+N20;(Tool diameter measurement)
+IF[#[1500+#38]GT0]GOTO21;
+#3000=103(Specify no storage data in the tool length offset);
+N21;
+IF[#40NE#0]GOTO22;
+IF[#[2100+#39]NE0]GOTO24;
+#3000=103(The tool diameter value is not entered);
+N22;
+#[2100+#39]=#40;
+#[2400+#39]=0;
+N24;
+G65 P81023 B2 T[#20] S[#40] D[#39] Z[#42] R[#43] I[#46];
+GOTO999;
+N30;(Tool length and diameter measurement)
+IF[#41NE#0]GOTO32;
+IF[#[1500+#38] GT 0]GOTO34;
+#3000=103(There is no input or error in the length of the tool);
+N32;
+#[1500+#38]=#41;
+#[1800+#38]=0;
+N34;
+IF[#40NE#0]GOTO36;
+IF[#[2100+#39]GT0]GOTO38;
+#3000=103(The tool diameter value is not entered);
+N36;
+#[2100+#39]=#40;
+#[2400+#39]=0;
+N38;
+G65 P81023 B3 T[#20] S[#40] D[#39] Z[#42] R[#43] Q[#43] I[#46];
+GOTO999;
+(***********)
+(Damage detection)
+N100;
+IF[#45NE#0]GOTO102;
+#3000=103(When detecting damage, damage tolerance E must enter data);
+N102;
+IF[#38NE#44]GOTO103;
+#3000=103(The knife offset NO.M cannot be the same as the knife length offset NO.t);
+N103;
+IF[#[1500+#38]GT0]GOTO104;
+#3000=103(No data is stored in the tool length offset during damage detection);
+N104;
+IF[#36EQ1]GOTO110;
+IF[#36EQ2]GOTO120;
+IF[#36EQ3]GOTO120;
+N110;(Tool length breakage detection)
+G65 P81023 B1 T[#20] S[#40] Z[#42] Q[#43] M[#44] E[#45];
+GOTO999;
+N120;
+IF[#[2100+#39]NE0]GOTO122;
+#3000=103(When the detection of damage, the tool diameter is unstored);
+N122;
+G65 P81023 B[#36] T[#20] S[#40] D[#39] Z[#42] R[#43] Q[#43] M[#44] E[#45];
+GOTO999;
+(**********)
+(Calibration mode)
+N400;
+IF[#41NE#0]GOTO402;
+#3000=103(Precision tool length of non-input standard cutter);
+N402;
+G65 P81021 K[#41] Z[#42];
+GOTO999;
+N500;
+IF[#40NE#0]GOTO502;
+#3000=103(Accurate tool diameter of non-input standard cutter);
+N502;
+IF[#46NE#0]GOTO504;
+#3000=103(The diameter of the cutter head is not entered);
+N504;
+M98P81032;
+N999;
+M49;(Off measurement mode)
+M30;
+%

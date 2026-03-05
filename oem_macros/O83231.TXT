@@ -1,0 +1,152 @@
+O83231;
+(Measuring procedures for grooves and bosses with angles)
+M48;(Enable measurement mode)
+IF[#1001EQ1]THEN#3000=91(When measuring, please close the auxiliary lock);
+M46;(Open probe)
+G04X1;
+G65 P83050 S#19 T#20 E#8;
+#9=#0;
+#13=#0;
+#21=#0;
+#22=#0;
+G65P83024;
+#3=#5013-#116;
+#36=#5006;
+#37=#5007;
+#5=#5011;
+#6=#5012;
+IF[#1NE#0]GOTO1;
+#3000=91(A value is not entered);
+N1;
+IF[#1LT-180]THEN#3000=91(The A value cannot be less than -180бу);
+IF[#1GT180]THEN#3000=91(The A value cannot be greater than 180бу);
+IF[#7NE#0]GOTO2;
+#3000=91(The D value is not entered);
+N2;
+IF[#7LE0]THEN#3000=91(The D value is incorrectly entered);
+#14=135;
+WHILE[#14LT175]DO1;
+#[#14]=#0;
+#14=#14+1;
+END1;
+G31X[#5-#502]Y[#6-#503]F#119;
+IF[ABS[#5011-[#5-#502]]GE#123]GOTO22;
+IF[ABS[#5012-[#6-#503]]GE#123]GOTO22;
+IF[#1LT90]GOTO7;
+#28=#1-90;
+#31=#28-180;
+#29=180;
+GOTO8;
+N7;
+#28=#1+90;
+#31=#28+180;
+#29=-180;
+N8;
+IF[#18LT0]GOTO83;
+IF[#26EQ#0]GOTO83;
+#28=#28+#29;
+#31=#31+#29;
+N83;
+G65P83031A[#28];
+#32=#509;
+G65P83031A[#31];
+#27=#509;
+#30=-1;
+IF[#26EQ#0]GOTO9;
+IF[#18NE#0]GOTO85;
+#18=5*#129;
+N85;
+IF[#18LT0]GOTO9;
+#30=1;
+N9;
+G65P83027A[#28]Q#17D#7Z#26R#18S#509;
+IF[#149NE0]GOTO21;
+#32=#32*[-#30];
+#140=#124+#502+[#32*COS[#28]];
+#140=[ROUND[#140*10000]]/10000;
+#141=#125+#503+[#32*SIN[#28]];
+#141=[ROUND[#141*10000]]/10000;
+G65P83027A[#31]Q#17D#7Z#26R#18S#509;
+IF[#149NE0]GOTO21;
+#27=#27*[-#30];
+#124=#124+#502+[#27*COS[#31]];
+#124=[ROUND[#124*10000]]/10000;
+#125=#125+#503+[#27*SIN[#31]];
+#125=[ROUND[#125*10000]]/10000;
+#12=#140-#124;
+#16=#141-#125;
+#135=[#140+#124]/2;
+#136=[#141+#125]/2;
+#138=[SQRT[[#12*#12]+[#16*#16]]];
+IF[#8EQ#0]GOTO95;(E)
+#138=#138+#[1500+#8];
+N95;
+#140=#135-#5;
+#141=#136-#6;
+#143=#138-#7;
+#145=SQRT[[#140*#140]+[#141*#141]];
+#146=#143*#30/2;
+#151=#135;(X-axis center absolute position)
+#152=#136;(Y-axis center absolute position)
+#156=#140;(The difference between the center of the X-axis and the starting position)
+#157=#141;(The difference between the center of the Y-axis and the starting position)
+#161=#5006-#5011-#5201+#135;(X-axis center machine coordinates)
+#162=#5007-#5012-#5202+#136;(Y-axis center machine coordinates)
+#165=#138;(Actual measurement size)
+#166=#138-#7;(The difference between the actual measured size and the given size)
+#171=#161;
+#172=#162;
+IF[#21EQ#0]GOTO11;(U)
+IF[ABS[#143]GE#21]GOTO23;
+IF[#145GE#21]GOTO23;
+N11;
+IF[#23EQ#0]GOTO13;(W)
+IF[ABS[#143]LT#23]GOTO12;
+#148=1;
+N12;
+IF[#120AND4EQ4]GOTO13;
+IF[ABS[#143]LT#23]GOTO13;
+G01X#5Y#6F#119;
+#3000=121(Profile size tolerance has been exceeded);
+N13;
+IF[#13EQ#0]GOTO15;(M)
+IF[ABS[#145]LT#13/2]GOTO14;
+#148=2;
+N14;
+IF[#120AND4EQ4]GOTO15;
+IF[ABS[#145]LT#13/2]GOTO15;
+#3000=121(We are out of position);
+N15;
+IF[#20EQ#0]GOTO19;
+IF[ABS[#146]LT#22]GOTO19;
+IF[#9NE#0]GOTO16;(F)
+#9=1;
+N16;
+G65P83032T#20C[#146*#9];(T)
+IF[#26NE#0]GOTO19;
+IF[#118LT#7/2]GOTO18;
+#148=5;
+N18;
+IF[#120AND4EQ4]GOTO19;
+IF[#118LT#7/2]GOTO19;
+#3000=122(Tool radius offset is too large);
+N19;
+IF[#19EQ#0]GOTO24;(S)
+G65P83032S#19W1.;
+GOTO24;
+N21;
+G01X#5Y#6F#119;
+IF[#149NE2]GOTO22;
+#3000=93(Measurement failure);
+N22;
+#3000=92(The measurement signal is triggered abnormally);
+N23;
+G01X#5Y#6F#119;
+#148=3;
+IF[#120AND4EQ4]GOTO24;
+#3000=125(The tolerance limit is exceeded);
+N24;
+G01X[#36-#5006+#5011+#5201]Y[#37-#5007+#5012+#5202]F#119;
+M49;(Close measurement mode)
+M99;
+%

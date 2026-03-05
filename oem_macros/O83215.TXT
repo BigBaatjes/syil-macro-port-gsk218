@@ -1,0 +1,181 @@
+O83215;
+(Internal inflection point measurement procedure)
+M48;(Enable measurement mode)
+IF[#1001EQ1]THEN#3000=91(When measuring, please close the auxiliary lock);
+M46;(Open probe)
+G04X1;
+G65 P83050 S#19 T#20 E#8;
+#2=#0;(B)
+#9=#0;(F)
+#13=#0;(M)
+#21=#0;(U)
+#23=#0;(W)
+G65P83024;
+#36=#5006;
+#37=#5007;
+#10=#5011;
+#12=#5012;
+IF[#24NE#0]GOTO1;
+#3000=91(The X value is not entered);
+N1;
+IF[#25NE#0]GOTO2;
+#3000=91(The Y value is not entered);
+N2;
+IF[#23EQ#0]GOTO3;
+#3000=91(The W value is not allowed to be entered);
+N3;
+#1=135;
+WHILE[#1LE175]DO1;
+#[#1]=#0;
+#1=#1+1;
+END1;
+#9=#10;
+#14=#12;
+IF[#4EQ#0]GOTO35;
+#4=ABS[#4];
+N35;
+#7=-#500;
+IF[#24LT#10]GOTO4;
+IF[#4EQ#0]GOTO36;
+#4=-#4;
+N36;
+#7=#500;
+N4;
+IF[#5EQ#0]GOTO45;
+#5=ABS[#5];
+N45;
+#8=-#501;
+IF[#25LT#12]GOTO5;
+IF[#5EQ#0]GOTO46;
+#5=-#5;
+N46;
+#8=#501;
+N5;
+G65P83026X#24Q#17S#500;
+IF[#149NE0]GOTO23;
+#30=#124;
+IF[#5EQ#0]GOTO6(NOJ);
+G31Y[#12+#5]F#119;
+#149=1;
+IF[ABS[#5012-[#12+#5]]GE#123]GOTO23;
+G65P83026X#24Q#17S#500;
+IF[#149NE0]GOTO23;
+#31=#124;
+N6;
+G01X#10Y#12F#119;
+G65P83026Y#25Q#17S#501;
+IF[#149NE0]GOTO23;
+#32=#125;
+IF[#4EQ#0]GOTO7;
+G31X[#10+#4]F#119;
+#149=1;
+IF[ABS[#5011-[#10+#4]]GE#123]GOTO23;
+G65P83026Y#25Q#17S#501;
+IF[#149NE0]GOTO23;
+#16=#125;
+N7;
+G01X#10Y#12F#119;
+IF[#4NE#0]GOTO8;
+IF[#5NE#0]GOTO8;
+#135=#30+#7+#502;
+#136=#32+#8+#503;
+GOTO17;
+N8;
+IF[#4EQ#0]GOTO10;
+IF[#5EQ#0]GOTO10;
+#26=[#16-#32]/#4;
+#27=#5/[#31-#30];
+G65P83031Y[#16-#32]X[#4];
+#139=#118;
+N9;
+G65P83031Y[#5]X[#31-#30];
+#142=#118;
+GOTO14;
+N10;
+IF[#5NE#0]GOTO12;
+#26=[#16-#32]/#4(M1);
+#27=-[1/#26](M2);
+G65P83031Y[#16-#32]X[#4];
+#139=#118;
+N11;
+G65P83031Y[-#4]X[#16-#32];
+#142=#118;
+GOTO14;
+N12;
+#27=#5/[#31-#30];
+#26=-[1/#27](M1);
+G65P83031Y[-[#31-#30]]X[#5];
+#139=#118(ANGM1);
+N13;
+G65P83031Y[#5]X[#31-#30];
+#142=#118;
+N14;
+#28=#7/ABS[COS[#142-90]];
+#29=#8/ABS[COS[#139]];
+#135=[#14-#32-#29+[#26*#9]-[#27*[#30+#28]]]/[#26-#27];
+#136=[#27*[#135-#30-#28]]+#14;
+#135=#135+#502;
+#136=#136+#503;
+N15;
+#144=#139;
+IF[#139LT90]GOTO16;
+#144=#139-180;
+N16;
+IF[#139GT-90]GOTO165;
+#144=#139+180;
+N165;
+#143=#142-90;
+IF[#143GT-90]GOTO17;
+#143=#143+180;
+N17;
+#140=#135-#24;
+#141=#136-#25;
+#145=SQRT[[#140*#140]+[#141*#141]];
+#148=0;
+#151=#135;(Absolute position of inflection point on X-axis)
+#152=#136;(Absolute position of inflection point on Y-axis)
+#156=#140;(The difference between the X-axis position of the inflection point and the input position)
+#157=#141;(The difference between the Y-axis position of the inflection point and the input position)
+#161=#5006-#5011-#5201+#135;(Inflection point X-axis position machine coordinates)
+#162=#5007-#5012-#5202+#136;(Inflection point Y-axis position machine coordinates)
+#171=#5006-#5011-#5201+#140;(Setting X-axis workpiece coordinate system)
+#172=#5007-#5012-#5202+#141;(Setting Y-axis workpiece coordinate system)
+IF[#21EQ#0]GOTO19;(U)
+IF[#145GE#21]GOTO25;
+N19;
+IF[#13EQ#0]GOTO21;(M)
+IF[#145LT#13/2]GOTO20;
+#148=1;
+N20;
+IF[#120AND4EQ4]GOTO21;
+IF[#145LT#13/2]GOTO21;
+#3000=121(OUTOFTOL);
+N21;
+IF[#2EQ#0]GOTO215;(B)
+IF[ABS[#143]LT#2]GOTO22;
+IF[ABS[#144]LT#2]GOTO22;
+#148=4;
+N22;
+IF[#120AND4EQ4]GOTO215;
+IF[ABS[#143]LT#2]GOTO215;
+IF[ABS[#144]LT#2]GOTO215;
+#3000=122(ANGLEOUTOFTOL);
+N215;
+IF[#19EQ#0]GOTO26;(S)
+G65 P83032 S#19 W1.;
+GOTO26;
+N23;
+G01X[#36-#5006+#5011+#5201]Y[#37-#5007+#5012+#5202]F#119;
+IF[#149NE2]GOTO24;
+#3000=93(Measurement failure);
+N24;
+#3000=92(The measurement signal is triggered abnormally);
+N25;
+#148=3;
+IF[#120AND4EQ4]GOTO26;
+#3000=123(The tolerance limit has been exceeded);
+N26;
+G00X[#36-#5006+#5011+#5201]Y[#37-#5007+#5012+#5202];
+M49;(Off measurement mode)
+M99;
+%

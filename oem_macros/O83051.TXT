@@ -1,0 +1,33 @@
+O83051;
+(Locating program)
+G65 P83024;
+#9=3000*#129;
+#1=#5011;
+#2=#5012;
+#3=#5013;
+#26=#3+ABS[#18];
+IF[#24NE#0]GOTO1;
+IF[#25NE#0]GOTO1;
+GOTO20;
+N1;
+G90 G28 Z#3;
+IF[#24EQ#0]THEN#24=#1;
+IF[#25EQ#0]THEN#25=#2;
+#10=SQRT[#24*#24+#25*#25];
+G31 X#24 Y#25 F#9;
+#11=SQRT[#5016*#5016+#5017*#5017];
+IF[ABS[#10-#11]LT#123]GOTO5;
+#3000=102(Location failure);
+N5;
+G31 Z#26 F#9;
+IF[ABS[#26-#5018]LT#123]GOTO10;
+G90 G28 Z[#5013];
+#3000=102(Z-safe position is blocked during positioning,please reset data);
+N10;
+G31 Z#3 F[800*#129];
+IF[ABS[#3-#5018]LT#123]GOTO20;
+G90 G28 Z[#5013];
+#3000=102(Locating to Z-direction measurement point blocked,please reset starting point);
+N20;
+M99;
+%

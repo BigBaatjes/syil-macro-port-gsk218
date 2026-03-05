@@ -1,0 +1,9 @@
+O81031;
+(Tool length measurement calibration program)
+#6=;(#6 Exact tool length values for standard tools)
+#17=#0;(#17 Overrange, + value)
+#26=#0;(#26 The incremental distance that the current point moves negatively to the Z axis£»- value)
+(The following content cannot be modified)
+G65 P81021 K[#6] Q[#17] Z[#26];
+M30;
+%
