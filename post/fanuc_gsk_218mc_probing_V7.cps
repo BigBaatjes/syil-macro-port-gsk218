@@ -552,8 +552,8 @@ function onSection() {
   writeBlock(mFormat.format(48)); // M48 - Enable measurement mode
   writeBlock(mFormat.format(46)); // M46 - Turn probe on
   writeBlock(gFormat.format(4), "X1"); // G04 X1 - Dwell for 1 second
-  writeBlock(gFormat.format(49)); // G49 - Cancel tool length compensation
-  writeBlock(gFormat.format(43), hFormat.format(0)); // G43 H0 - Set tool length offset to 0
+  // G43 H## already active from writeInitialPositioning — keep probe tool length comp
+  // so #5018 (workpiece skip position) correctly accounts for probe length
   inspectionCreateResultsFileHeader();
 }
   if (typeof inspectionProcessSectionStart == "function") {
