@@ -649,7 +649,7 @@ function onCommand(command) {
     writeBlock(sOutput.format(spindleSpeed), mFormat.format(tool.clockwise ? 3 : 4));
     return;
   case COMMAND_LOAD_TOOL:
-    writeToolBlock("T" + toolFormat.format(tool.number), mFormat.format(6));
+    writeToolBlock("IF[#3745NE" + toolFormat.format(tool.number) + "]THEN", "T" + toolFormat.format(tool.number), mFormat.format(6));
     writeComment(tool.comment);
 
     var preloadTool = getNextTool(tool.number != getFirstTool().number);
