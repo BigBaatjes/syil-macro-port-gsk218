@@ -7,7 +7,7 @@
   MODIFIED FOR GSK 218MC COMPATIBILITY:
   - V6: O9100-series custom probe library replaces broken GSK P83xxx macros
   - WCS selection from Fusion Setup (not hardcoded to G54)
-  - Inch output (G20) - all probing macros use inch constants
+  - Forced metric output (G21) - GSK requires metric
   - Semicolon after O program number (GSK requirement)
   - WCS mapping: Fusion offset 1=G54(S54), 2=G55(S55), etc.
   - All probe cycles use two-pass architecture (fast+slow) via O9100-series
@@ -42,7 +42,7 @@ minimumCircularSweep = toRad(0.01);
 maximumCircularSweep = toRad(180);
 allowHelicalMoves = true;
 allowedCircularPlanes = undefined; // allow any circular motion
-highFeedrate = 200; // in/min for inch mode (G20)
+highFeedrate = (unit == MM) ? 5000 : 200;
 probeMultipleFeatures = true;
 
 // user-defined properties
@@ -256,20 +256,21 @@ var diameterOffsetFormat = createFormat({prefix:"D", minDigitsLeft:2, decimals:1
 var probeWCSFormat = createFormat({prefix:"S", decimals:0, type:FORMAT_REAL});
 var probeExtWCSFormat = createFormat({prefix:"S", decimals:0, type:FORMAT_REAL, offset:100});
 
-var xyzFormat = createFormat({decimals:4, type:FORMAT_REAL});
-var ijkFormat = createFormat({decimals:6, type:FORMAT_REAL});
+var xyzFormat = createFormat({decimals:(unit == MM ? 3 : 4), type:FORMAT_REAL});
+var xyzMetricFormat = createFormat({decimals:3, type:FORMAT_REAL}); // Always metric for GSK probe values
+var ijkFormat = createFormat({decimals:6, type:FORMAT_REAL}); // unitless
 var rFormat = xyzFormat; // radius
 var abcFormat = createFormat({decimals:3, type:FORMAT_REAL, scale:DEG});
-var feedFormat = createFormat({decimals:1, type:FORMAT_REAL});
+var feedFormat = createFormat({decimals:(unit == MM ? 0 : 1), type:FORMAT_REAL});
 var inverseTimeFormat = createFormat({decimals:3, type:FORMAT_REAL});
-var pitchFormat = createFormat({decimals:3, type:FORMAT_REAL});
+var pitchFormat = createFormat({decimals:(unit == MM ? 3 : 4), type:FORMAT_REAL});
 var toolFormat = createFormat({decimals:0});
 var rpmFormat = createFormat({decimals:0});
 var secFormat = createFormat({decimals:3, type:FORMAT_REAL}); // seconds - range 0.001-99999.999
 var milliFormat = createFormat({decimals:0}); // milliseconds // range 1-9999
 var taperFormat = createFormat({decimals:1, scale:DEG});
 var oFormat = createFormat({minDigitsLeft:4, decimals:0});
-var peckFormat = createFormat({decimals:3, type:FORMAT_REAL});
+var peckFormat = createFormat({decimals:(unit == MM ? 3 : 4), type:FORMAT_REAL});
 // var peckFormat = createFormat({decimals:0, type:FORMAT_LZS, minDigitsLeft:4, scale:(unit == MM ? 1000 : 10000)});
 
 var xOutput = createOutputVariable({onchange:function() {state.retractedX = false;}, prefix:"X"}, xyzFormat);
@@ -421,7 +422,7 @@ function onOpen() {
       error(localize("Parametric feed is not supported when using G95."));
       return;
     }
-    feedFormat.setNumberOfDecimals(4); // in/rev needs 4 decimals
+    feedFormat.setNumberOfDecimals(unit == MM ? 4 : 5);
     feedOutput.setFormat(feedFormat);
   }
 
@@ -435,7 +436,7 @@ function onOpen() {
 
   // absolute coordinates and feed per min
   writeBlock(gAbsIncModal.format(90), gFeedModeModal.format(getProperty("useG95") ? 95 : 94), gPlaneModal.format(17), toolLengthCompOutput.format(49), gFormat.format(40), gFormat.format(80));
-  writeBlock(gUnitModal.format(20)); // G20 inch mode
+  writeBlock(gUnitModal.format(21)); // Force G21 (metric) - GSK controller requires metric
   validateCommonParameters();
 }
 
@@ -3473,7 +3474,7 @@ function getCommonCycle(x, y, z, r, c) {
 // <<<<< INCLUDED FROM include_files/drillCycles_fanuc.cpi
 // >>>>> INCLUDED FROM include_files/commonInspectionFunctions_fanuc.cpi
 var macroFormat = createFormat({prefix:(typeof inspectionVariables == "undefined" ? "#" : inspectionVariables.localVariablePrefix), decimals:0});
-var macroRoundingFormat = "[54]"; // 4 decimal places for inch mode
+var macroRoundingFormat =  (unit == MM) ? "[53]" : "[44]";
 var isDPRNTopen = false;
 
 var WARNING_OUTDATED = 0;
@@ -3706,7 +3707,11 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
   }
   var workOffset = fusionWCS + 53;
 
-  var probeRadius = tool.diameter / 2;
+  // Probe radius in mm (GSK requires metric, our programs use R param)
+  var probeRadiusMm = (unit == IN) ? (tool.diameter / 2) * 25.4 : (tool.diameter / 2);
+
+  // Helper: convert a value to mm if Fusion is in inches
+  function toMM(val) { return (unit == IN) ? val * 25.4 : val; }
 
   switch (cycleType) {
   case "probing-x":
@@ -3718,7 +3723,7 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
     writeBlock(gFormat.format(65), "P9100",
       "S" + workOffset,
       "I" + xyzFormat.format(dirI),
-      "R" + xyzFormat.format(probeRadius));
+      "R" + xyzMetricFormat.format(probeRadiusMm));
     break;
 
   case "probing-y":
@@ -3730,7 +3735,7 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
     writeBlock(gFormat.format(65), "P9101",
       "S" + workOffset,
       "I" + xyzFormat.format(dirI),
-      "R" + xyzFormat.format(probeRadius));
+      "R" + xyzMetricFormat.format(probeRadiusMm));
     break;
 
   case "probing-z":
@@ -3739,7 +3744,7 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
     protectedProbeMove(cycle, x, y, z);
     writeBlock(gFormat.format(65), "P9102",
       "S" + workOffset,
-      "R" + xyzFormat.format(probeRadius));
+      "R" + xyzMetricFormat.format(probeRadiusMm));
     // Safe Z retract after Z probe (probe is on surface after M99)
     writeBlock(gAbsIncModal.format(91), gFormat.format(28), zOutput.format(0));
     writeBlock(gAbsIncModal.format(90));
@@ -3755,14 +3760,14 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
       "S" + workOffset,
       "I" + xyzFormat.format(dirI),
       "J" + xyzFormat.format(dirJ),
-      "R" + xyzFormat.format(probeRadius));
+      "R" + xyzMetricFormat.format(probeRadiusMm));
     if (getProperty("EnableZeroPointCompensation")) {
       var overrideWCS = (currentSection.workOffset > 0 ? currentSection.workOffset : 1) + 53;
       writeBlock(gFormat.format(65), "P9130",
         "S" + workOffset,
         "K" + overrideWCS,
-        "X" + xyzFormat.format(x),
-        "Y" + xyzFormat.format(y));
+        "X" + xyzMetricFormat.format(toMM(x)),
+        "Y" + xyzMetricFormat.format(toMM(y)));
     }
     break;
 
@@ -3775,49 +3780,52 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
       "S" + workOffset,
       "I" + xyzFormat.format(dirI),
       "J" + xyzFormat.format(dirJ),
-      "R" + xyzFormat.format(probeRadius));
+      "R" + xyzMetricFormat.format(probeRadiusMm));
     if (getProperty("EnableZeroPointCompensation")) {
       var overrideWCS = (currentSection.workOffset > 0 ? currentSection.workOffset : 1) + 53;
       writeBlock(gFormat.format(65), "P9130",
         "S" + workOffset,
         "K" + overrideWCS,
-        "X" + xyzFormat.format(x),
-        "Y" + xyzFormat.format(y));
+        "X" + xyzMetricFormat.format(toMM(x)),
+        "Y" + xyzMetricFormat.format(toMM(y)));
     }
     break;
 
   case "probing-xy-rectangular-boss":
     // O9120 - Rectangular boss center XY (Z cycling)
     // Must position at clearance height ABOVE boss - O9120 handles Z drop
-    var widthX = typeof cycle.width1 === "number" ? cycle.width1 : 3.0;
-    var widthY = typeof cycle.width2 === "number" ? cycle.width2 : 2.0;
+    var widthX = typeof cycle.width1 === "number" ? cycle.width1 : 76.2;
+    var widthY = typeof cycle.width2 === "number" ? cycle.width2 : 50.8;
+    var widthXmm = toMM(widthX);
+    var widthYmm = toMM(widthY);
     // Position at clearance height above boss center (NOT probe depth)
     if (cycle.retract) {
       writeBlock(gMotionModal.format(0), zOutput.format(cycle.retract));
     }
     writeBlock(gMotionModal.format(0), xOutput.format(x), yOutput.format(y));
     // Z drop = measurement depth minus park height (negative value)
-    var zDrop = -0.4;
+    // Fusion passes z as retract height; cycle.depth is distance below retract to measurement point
+    var zDropMm = -10.0;
     if (typeof z === "number" && cycle.retract) {
       var measureZ = (typeof cycle.depth === "number" && cycle.depth > 0) ? z - cycle.depth : z;
-      zDrop = measureZ - cycle.retract;
+      zDropMm = toMM(measureZ - cycle.retract);
     }
     // T = clearance beyond half-width for park position
-    var clearance = typeof cycle.probeClearance === "number" ? cycle.probeClearance : 0.4;
+    var clearanceMm = typeof cycle.probeClearance === "number" ? toMM(cycle.probeClearance) : 10.0;
     writeBlock(gFormat.format(65), "P9120",
       "S" + workOffset,
-      "D" + xyzFormat.format(widthX),
-      "E" + xyzFormat.format(widthY),
-      "Z" + xyzFormat.format(zDrop),
-      "T" + xyzFormat.format(clearance),
-      "R" + xyzFormat.format(probeRadius));
+      "D" + xyzMetricFormat.format(widthXmm),
+      "E" + xyzMetricFormat.format(widthYmm),
+      "Z" + xyzMetricFormat.format(zDropMm),
+      "T" + xyzMetricFormat.format(clearanceMm),
+      "R" + xyzMetricFormat.format(probeRadiusMm));
     if (getProperty("EnableZeroPointCompensation")) {
       var overrideWCS = (currentSection.workOffset > 0 ? currentSection.workOffset : 1) + 53;
       writeBlock(gFormat.format(65), "P9130",
         "S" + workOffset,
         "K" + overrideWCS,
-        "X" + xyzFormat.format(x),
-        "Y" + xyzFormat.format(y));
+        "X" + xyzMetricFormat.format(toMM(x)),
+        "Y" + xyzMetricFormat.format(toMM(y)));
     }
     break;
 
@@ -3825,51 +3833,55 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
     // O9121 - Rectangular pocket center XY (pure XY, no Z cycling)
     // Probe positioned inside pocket at probe depth
     protectedProbeMove(cycle, x, y, z);
-    var widthX = typeof cycle.width1 === "number" ? cycle.width1 : 3.78;
-    var widthY = typeof cycle.width2 === "number" ? cycle.width2 : 0.689;
+    var widthX = typeof cycle.width1 === "number" ? cycle.width1 : 96.0;
+    var widthY = typeof cycle.width2 === "number" ? cycle.width2 : 17.5;
+    var widthXmm = toMM(widthX);
+    var widthYmm = toMM(widthY);
     writeBlock(gFormat.format(65), "P9121",
       "S" + workOffset,
-      "D" + xyzFormat.format(widthX),
-      "E" + xyzFormat.format(widthY));
+      "D" + xyzMetricFormat.format(widthXmm),
+      "E" + xyzMetricFormat.format(widthYmm));
     if (getProperty("EnableZeroPointCompensation")) {
       var overrideWCS = (currentSection.workOffset > 0 ? currentSection.workOffset : 1) + 53;
       writeBlock(gFormat.format(65), "P9130",
         "S" + workOffset,
         "K" + overrideWCS,
-        "X" + xyzFormat.format(x),
-        "Y" + xyzFormat.format(y));
+        "X" + xyzMetricFormat.format(toMM(x)),
+        "Y" + xyzMetricFormat.format(toMM(y)));
     }
     break;
 
   case "probing-xy-circular-boss":
     // O9122 - Circular boss center 3-point (Z cycling)
     // Must position at clearance height ABOVE boss
-    var diameter = typeof cycle.width1 === "number" ? cycle.width1 : 1.0;
+    var diameter = typeof cycle.width1 === "number" ? cycle.width1 : 25.0;
+    var diameterMm = toMM(diameter);
     // Position at clearance height above boss center (NOT probe depth)
     if (cycle.retract) {
       writeBlock(gMotionModal.format(0), zOutput.format(cycle.retract));
     }
     writeBlock(gMotionModal.format(0), xOutput.format(x), yOutput.format(y));
     // Z drop = measurement depth minus park height (negative value)
-    var zDrop = -0.4;
+    // Fusion passes z as retract height; cycle.depth is distance below retract to measurement point
+    var zDropMm = -10.0;
     if (typeof z === "number" && cycle.retract) {
       var measureZ = (typeof cycle.depth === "number" && cycle.depth > 0) ? z - cycle.depth : z;
-      zDrop = measureZ - cycle.retract;
+      zDropMm = toMM(measureZ - cycle.retract);
     }
-    var clearance = typeof cycle.probeClearance === "number" ? cycle.probeClearance : 0.4;
+    var clearanceMm = typeof cycle.probeClearance === "number" ? toMM(cycle.probeClearance) : 10.0;
     writeBlock(gFormat.format(65), "P9122",
       "S" + workOffset,
-      "D" + xyzFormat.format(diameter),
-      "Z" + xyzFormat.format(zDrop),
-      "T" + xyzFormat.format(clearance),
-      "R" + xyzFormat.format(probeRadius));
+      "D" + xyzMetricFormat.format(diameterMm),
+      "Z" + xyzMetricFormat.format(zDropMm),
+      "T" + xyzMetricFormat.format(clearanceMm),
+      "R" + xyzMetricFormat.format(probeRadiusMm));
     if (getProperty("EnableZeroPointCompensation")) {
       var overrideWCS = (currentSection.workOffset > 0 ? currentSection.workOffset : 1) + 53;
       writeBlock(gFormat.format(65), "P9130",
         "S" + workOffset,
         "K" + overrideWCS,
-        "X" + xyzFormat.format(x),
-        "Y" + xyzFormat.format(y));
+        "X" + xyzMetricFormat.format(toMM(x)),
+        "Y" + xyzMetricFormat.format(toMM(y)));
     }
     break;
 
@@ -3877,17 +3889,18 @@ function writeProbeCycle(cycle, x, y, z, P, F) {
     // O9123 - Circular bore center 3-point (pure XY, no Z cycling)
     // Probe positioned inside bore at probe depth
     protectedProbeMove(cycle, x, y, z);
-    var diameter = typeof cycle.width1 === "number" ? cycle.width1 : 1.0;
+    var diameter = typeof cycle.width1 === "number" ? cycle.width1 : 25.0;
+    var diameterMm = toMM(diameter);
     writeBlock(gFormat.format(65), "P9123",
       "S" + workOffset,
-      "D" + xyzFormat.format(diameter));
+      "D" + xyzMetricFormat.format(diameterMm));
     if (getProperty("EnableZeroPointCompensation")) {
       var overrideWCS = (currentSection.workOffset > 0 ? currentSection.workOffset : 1) + 53;
       writeBlock(gFormat.format(65), "P9130",
         "S" + workOffset,
         "K" + overrideWCS,
-        "X" + xyzFormat.format(x),
-        "Y" + xyzFormat.format(y));
+        "X" + xyzMetricFormat.format(toMM(x)),
+        "Y" + xyzMetricFormat.format(toMM(y)));
     }
     break;
 
