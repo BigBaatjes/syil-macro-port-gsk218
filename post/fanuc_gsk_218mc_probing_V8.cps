@@ -65,7 +65,7 @@ properties = {
       {title:"No", id:"false"},
       {title:"Only on tool change", id:"toolChange"}
     ],
-    value: "true",
+    value: "false",
     scope: "post"
   },
   sequenceNumberStart: {
